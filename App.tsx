@@ -135,6 +135,14 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const checkKey = async () => {
+      // Check if API key is available in environment (for GitHub Pages deployment)
+      const envApiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+      if (envApiKey && envApiKey !== 'undefined' && envApiKey !== 'null') {
+        setHasApiKey(true);
+        return;
+      }
+      
+      // Check AI Studio API key (for local development in AI Studio)
       if (window.aistudio) {
         const selected = await window.aistudio.hasSelectedApiKey();
         setHasApiKey(selected);
