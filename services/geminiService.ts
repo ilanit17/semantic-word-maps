@@ -3,7 +3,18 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { WordCategory, OddOneOutSet } from "../types";
 
 // Always create a new instance right before making an API call to ensure latest API key is used
-const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getAI = () => {
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
+    throw new Error('API key is missing. Please provide a valid API key!');
+  }
+  // Ensure the API key is a valid string (remove any non-ASCII characters that might cause header issues)
+  const cleanApiKey = String(apiKey).trim();
+  if (!cleanApiKey) {
+    throw new Error('API key is empty. Please provide a valid API key!');
+  }
+  return new GoogleGenAI({ apiKey: cleanApiKey });
+};
 
 const getNikudInstruction = (withNikud: boolean) => 
   withNikud ? "IMPORTANT: Use full Hebrew punctuation (Nikud/Vocalization) for all Hebrew words and sentences." : "Use standard Hebrew without Nikud.";
