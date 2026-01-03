@@ -109,7 +109,6 @@ const App: React.FC = () => {
         const parsed = JSON.parse(savedData);
         if (parsed && parsed.state) {
           setState({
-            ...state,
             ...parsed.state,
             categories: parsed.state.categories || [],
             wordImages: parsed.state.wordImages || [],
