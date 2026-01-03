@@ -57,6 +57,7 @@ const App: React.FC = () => {
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isFirstRender = useRef(true);
 
   // Exercise selection states
   const [selectedWordsForDefs, setSelectedWordsForDefs] = useState<string[]>([]);
@@ -100,17 +101,39 @@ const App: React.FC = () => {
     return (state.categories || []).flatMap(c => c.words || []);
   }, [state.categories]);
 
-  // Clear saved state on mount so each visit starts clean
+  // Safe load from LocalStorage on mount
   useEffect(() => {
-    try {
-      localStorage.removeItem('ilanit_lesson_builder_v4');
-    } catch (e) {
-      console.error('Could not clear saved lesson state', e);
+    const savedData = localStorage.getItem('ilanit_lesson_builder_v4');
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        if (parsed && parsed.state) {
+          setState({
+            ...state,
+            ...parsed.state,
+            categories: parsed.state.categories || [],
+            wordImages: parsed.state.wordImages || [],
+            oddOneOutSets: parsed.state.oddOneOutSets || [],
+            definitionMatches: parsed.state.definitionMatches || [],
+            alphabeticalWords: parsed.state.alphabeticalWords || [],
+            dualWordSets: parsed.state.dualWordSets || [],
+            usedWords: parsed.state.usedWords || []
+          });
+          setFillBlanks(parsed.fillBlanks || []);
+          setCurrentStep(parsed.currentStep || 1);
+        }
+      } catch (e) {
+        console.error("Failed to load autosave", e);
+      }
     }
   }, []);
 
   // Autosave
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     const dataToSave = { state, fillBlanks, currentStep };
     localStorage.setItem('ilanit_lesson_builder_v4', JSON.stringify(dataToSave));
   }, [state, fillBlanks, currentStep]);
